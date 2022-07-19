@@ -1,9 +1,10 @@
-import React, { useState } from "react";
-import { Stage, Layer, Star, Image, Text, Rect } from "react-konva";
+import React, { useEffect, useState } from "react";
+import { Stage, Layer, Image, Text, Rect } from "react-konva";
 import useImage from "use-image";
+import { ethers } from "ethers";
 
 const maxWidth = window.innerWidth * 0.98;
-const maxHeight = window.innerHeight * 0.98;
+//const maxHeight = window.innerHeight * 0.98;
 const width = 2048;
 const height = 1600;
 const ratio = height / width;
@@ -14,6 +15,50 @@ const Spaceship = () => {
 };
 
 const App = () => {
+  const [currentAccount, setCurrentAccount] = useState(null);
+  const checkWalletIsConnected = async () => {
+    const { ethereum } = window;
+
+    if (!ethereum) {
+      console.log("make sure you have Metamask installed!");
+      return;
+    } else {
+      console.log("Wallet exists! We're ready to go!");
+    }
+
+    const accounts = await ethereum.request({ method: "eth_accounts" });
+
+    if (accounts.length !== 0) {
+      const account = accounts[0];
+      console.log("Found an authorized account: ", account);
+      setCurrentAccount(account);
+    } else {
+      console.log("No authorized account found");
+    }
+  };
+
+  const connectWalletHandler = async () => {
+    const { ethereum } = window;
+
+    if (!ethereum) {
+      alert("Please install Metamask!");
+    }
+
+    try {
+      const accounts = await ethereum.request({
+        method: "eth_requestAccounts"
+      });
+      console.log("Found an account! Address: ", accounts[0]);
+      setCurrentAccount(accounts[0]);
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  useEffect(() => {
+    checkWalletIsConnected();
+  }, []);
+
   const [state, setState] = React.useState({
     cursor: {
       x: null,
@@ -81,7 +126,7 @@ const App = () => {
           opacity={isHover ? 0.5 : 0}
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
-          onClick={handleMouseClick}
+          onClick={connectWalletHandler}
         />
       </Layer>
     </Stage>
